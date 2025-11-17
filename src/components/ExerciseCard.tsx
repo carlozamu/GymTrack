@@ -27,31 +27,33 @@ export const ExerciseCard = ({
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full text-left rounded-3xl border border-white/10 p-4 transition hover:scale-[1.01] ${
-        isActive ? "bg-white/20 text-slate-900" : "bg-white/10 text-white"
-      } backdrop-blur-lg shadow-lg`}
+      className={`w-full rounded-3xl border px-4 py-3 text-left shadow-card transition ${
+        isActive
+          ? "border-accent bg-accent/5"
+          : "border-outline bg-white hover:border-accent/50"
+      }`}
     >
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm uppercase tracking-wide text-slate-200">
+          <p className="text-xs uppercase tracking-wide text-text-secondary">
             Exercise
           </p>
-          <h2 className="text-xl font-semibold">{exercise.name}</h2>
+          <p className="text-lg font-semibold text-text-primary">
+            {exercise.name}
+          </p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-slate-200">Current e1RM</p>
-          <p className="text-2xl font-bold">
+          <p className="text-xs text-text-secondary">Current e1RM</p>
+          <p className="text-xl font-semibold text-text-primary">
             {currentE1RM ? currentE1RM.toFixed(1) : "—"} kg
           </p>
         </div>
       </div>
-      <div className="mt-4 flex items-center justify-between text-sm">
-        <span className="rounded-full bg-slate-900/30 px-3 py-1 text-slate-100">
-          Volume: {exercise.volumeLevel}
+      <div className="mt-3 flex items-center justify-between text-xs text-text-secondary">
+        <span className="rounded-full bg-base px-3 py-1 text-text-primary">
+          {exercise.volumeLevel} volume
         </span>
-        <span className="text-slate-200">
-          Max sets: {exercise.maxSets.toString()}
-        </span>
+        <span>Max sets: {exercise.maxSets}</span>
       </div>
     </button>
   );

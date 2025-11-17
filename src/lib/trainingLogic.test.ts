@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import type { Exercise } from "../types/training";
 import {
   calculate1RM,
   calculateSuggestedSets,
   calculateWeight,
   effectiveReps,
   isDeloadTime,
+  recomputeExerciseWeeks,
   summarizeSets,
 } from "./trainingLogic";
 
@@ -57,5 +59,44 @@ describe("training logic", () => {
     expect(calculate1RM(100, 5)).toBeCloseTo(112.5, 2);
     const suggestion = calculateWeight(120, 0.83, 0.9, 200, 2.5, 100, "Week 2");
     expect(suggestion).toBeGreaterThan(0);
+  });
+
+  it("recomputes week summaries and progressive suggestions", () => {
+    const exercise: Exercise = {
+      id: "ex-1",
+      name: "Bench",
+      oneRM: 120,
+      minRange: 0.83,
+      maxRange: 0.89,
+      maxStack: 200,
+      rounding: 2.5,
+      volumeLevel: "Moderate",
+      maxSets: 8,
+      weeks: [
+        {
+          id: "week-1",
+          label: "Week 1",
+          sets: buildSets([
+            { reps: 6, weight: 100 },
+            { reps: 8, weight: 95 },
+          ]),
+        },
+        {
+          id: "week-2",
+          label: "Week 2",
+          sets: [],
+        },
+      ],
+    };
+
+    const updated = recomputeExerciseWeeks(exercise);
+    const week1 = updated.weeks[0]!;
+    const week2 = updated.weeks[1]!;
+
+    expect(week1.suggestedWeight).toBeGreaterThan(0);
+    expect(week1.effectiveReps).toBeGreaterThan(0);
+    expect(week1.estimatedOneRM).toBeGreaterThan(0);
+    expect(week1.suggestedSets).toBeGreaterThan(0);
+    expect(week2.suggestedWeight).toBeGreaterThan(0);
   });
 });

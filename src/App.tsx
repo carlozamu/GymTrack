@@ -3,31 +3,11 @@ import { ExerciseCard } from "./components/ExerciseCard";
 import { ExerciseDetail } from "./components/ExerciseDetail";
 import { createId } from "./lib/id";
 import { loadExercises, saveExercises } from "./lib/storage";
-import {
-  recomputeExerciseWeeks,
-  type WeekMetrics,
-} from "./lib/trainingLogic";
+import { recomputeExerciseWeeks } from "./lib/trainingLogic";
 import type { Exercise } from "./types/training";
 
-interface ExerciseState {
-  list: Exercise[];
-  metrics: Record<string, Record<string, WeekMetrics>>;
-}
-
-const defaultState: ExerciseState = { list: [], metrics: {} };
-
-const recomputeAll = (list: Exercise[]): ExerciseState => {
-  const computed: Exercise[] = [];
-  const metrics: Record<string, Record<string, WeekMetrics>> = {};
-
-  list.forEach((exercise) => {
-    const { updatedExercise, weekMetrics } = recomputeExerciseWeeks(exercise);
-    computed.push(updatedExercise);
-    metrics[updatedExercise.id] = weekMetrics;
-  });
-
-  return { list: computed, metrics };
-};
+const recomputeAll = (list: Exercise[]): Exercise[] =>
+  list.map((exercise) => recomputeExerciseWeeks(exercise));
 
 const createExercise = (name: string): Exercise => ({
   id: createId(),
@@ -47,40 +27,44 @@ const createExercise = (name: string): Exercise => ({
 });
 
 export const App = () => {
-  const [exerciseState, setExerciseState] =
-    useState<ExerciseState>(defaultState);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
     null,
   );
   const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
   const [newExerciseName, setNewExerciseName] = useState("");
-
-  const applyUpdate = (builder: (prev: Exercise[]) => Exercise[]) => {
-    setExerciseState((prev) => recomputeAll(builder(prev.list)));
-  };
+  const [focusSetId, setFocusSetId] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = loadExercises();
     const computed = recomputeAll(stored);
-    setExerciseState(computed);
-    if (computed.list.length) {
-      setSelectedExerciseId(computed.list[0].id);
-      setSelectedWeekId(computed.list[0].weeks[0]?.id ?? null);
+    setExercises(computed);
+    if (computed.length) {
+      setSelectedExerciseId(computed[0].id);
+      setSelectedWeekId(computed[0].weeks[0]?.id ?? null);
     }
   }, []);
 
   useEffect(() => {
-    saveExercises(exerciseState.list);
-  }, [exerciseState.list]);
+    saveExercises(exercises);
+  }, [exercises]);
+
+  const applyUpdate = (builder: (prev: Exercise[]) => Exercise[]) => {
+    setExercises((prev) => recomputeAll(builder(prev)));
+  };
 
   const selectedExercise = useMemo(() => {
-    if (!selectedExerciseId) {
-      return exerciseState.list[0] ?? null;
+    if (!exercises.length) {
+      return null;
     }
-    return exerciseState.list.find(
-      (exercise) => exercise.id === selectedExerciseId,
-    ) ?? exerciseState.list[0] ?? null;
-  }, [exerciseState.list, selectedExerciseId]);
+    if (!selectedExerciseId) {
+      return exercises[0];
+    }
+    return (
+      exercises.find((exercise) => exercise.id === selectedExerciseId) ??
+      exercises[0]
+    );
+  }, [exercises, selectedExerciseId]);
 
   useEffect(() => {
     if (!selectedExercise) {
@@ -127,6 +111,8 @@ export const App = () => {
   };
 
   const handleAddSet = (exerciseId: string, weekId: string) => {
+    const newSetId = createId();
+    setFocusSetId(newSetId);
     applyUpdate((prev) =>
       prev.map((exercise) =>
         exercise.id === exerciseId
@@ -139,7 +125,7 @@ export const App = () => {
                       sets: [
                         ...week.sets,
                         {
-                          id: createId(),
+                          id: newSetId,
                           reps: 0,
                           weight: week.suggestedWeight ?? 0,
                         },
@@ -213,97 +199,97 @@ export const App = () => {
     setNewExerciseName("");
   };
 
-  const metricsForSelected =
-    (selectedExercise &&
-      exerciseState.metrics[selectedExercise.id]) ||
-    {};
-
   return (
-    <div className="min-h-screen bg-transparent px-4 py-6 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <header className="flex flex-col gap-2 text-white">
-          <p className="text-sm uppercase tracking-[0.4em] text-slate-200">
+    <div className="min-h-screen bg-base px-4 py-6 text-text-primary sm:px-6">
+      <main className="mx-auto flex w-full max-w-xl flex-col gap-6">
+        <header className="space-y-2 text-center">
+          <p className="text-xs uppercase tracking-[0.4em] text-text-secondary">
             GymTrack
           </p>
-          <h1 className="text-4xl font-semibold">Liquid Glass Training Log</h1>
-          <p className="text-slate-200">
-            Track sets, hypertrophic volume load, and next week&apos;s target
-            loads with Apple-inspired polish.
+          <h1 className="text-3xl font-semibold">Weekly Strength Planner</h1>
+          <p className="text-base text-text-secondary">
+            Define your lifts once, then follow the guided weekly flow that
+            mirrors the Google Sheet.
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
-          <div className="space-y-4">
-            <div className="space-y-3 rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-2xl">
-              <p className="text-sm uppercase tracking-wide text-slate-200">
+        <section className="space-y-3">
+          <div className="rounded-3xl bg-surface p-4 shadow-card">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-text-primary">
                 Exercises
-              </p>
-              <div className="space-y-3">
-                {exerciseState.list.map((exercise) => (
-                  <ExerciseCard
-                    key={exercise.id}
-                    exercise={exercise}
-                    isActive={exercise.id === selectedExercise?.id}
-                    onSelect={() => {
-                      setSelectedExerciseId(exercise.id);
-                      setSelectedWeekId(exercise.weeks[0]?.id ?? null);
-                    }}
-                  />
-                ))}
-                {!exerciseState.list.length && (
-                  <p className="rounded-2xl bg-slate-900/30 p-3 text-sm text-slate-200">
-                    No exercises yet. Add your first one below.
-                  </p>
-                )}
-              </div>
+              </h2>
+              <span className="text-sm text-text-secondary">
+                {exercises.length} saved
+              </span>
             </div>
-            <div className="rounded-3xl border border-dashed border-white/30 bg-white/5 p-4 backdrop-blur-xl">
-              <p className="text-sm text-slate-200">New exercise</p>
-              <input
-                type="text"
-                placeholder="e.g. Bench Press"
-                className="mt-2 w-full rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-white focus:border-blue-400 focus:outline-none"
-                value={newExerciseName}
-                onChange={(event) => setNewExerciseName(event.target.value)}
-              />
-              <button
-                type="button"
-                onClick={handleAddExercise}
-                className="mt-3 w-full rounded-2xl bg-white/80 py-2 text-slate-900 disabled:cursor-not-allowed disabled:bg-white/30"
-                disabled={!newExerciseName.trim()}
-              >
-                + Add Exercise
-              </button>
+            <div className="space-y-3">
+              {exercises.map((exercise) => (
+                <ExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  isActive={exercise.id === selectedExercise?.id}
+                  onSelect={() => {
+                    setSelectedExerciseId(exercise.id);
+                    setSelectedWeekId(exercise.weeks[0]?.id ?? null);
+                  }}
+                />
+              ))}
+              {!exercises.length && (
+                <p className="rounded-2xl bg-base px-3 py-2 text-sm text-text-secondary">
+                  No exercises yet. Add your first lift below.
+                </p>
+              )}
             </div>
           </div>
 
-          {selectedExercise ? (
-            <ExerciseDetail
-              exercise={selectedExercise}
-              weekMetrics={metricsForSelected}
-              selectedWeekId={selectedWeekId}
-              onWeekChange={setSelectedWeekId}
-              onConfigChange={(patch) =>
-                handleExerciseConfigChange(selectedExercise.id, patch)
-              }
-              onAddSet={(weekId) =>
-                handleAddSet(selectedExercise.id, weekId)
-              }
-              onUpdateSet={(weekId, setId, field, value) =>
-                handleUpdateSet(selectedExercise.id, weekId, setId, field, value)
-              }
-              onRemoveSet={(weekId, setId) =>
-                handleRemoveSet(selectedExercise.id, weekId, setId)
-              }
-              onAddWeek={() => handleAddWeek(selectedExercise.id)}
+          <div className="rounded-3xl border border-outline bg-surface p-4 shadow-card">
+            <label className="block text-sm font-medium text-text-primary">
+              New exercise
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Bench Press"
+              className="mt-2 w-full rounded-2xl border border-outline bg-white px-3 py-2 text-base text-text-primary focus:border-accent focus:outline-none"
+              value={newExerciseName}
+              onChange={(event) => setNewExerciseName(event.target.value)}
             />
-          ) : (
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-slate-200 backdrop-blur-3xl">
-              Select or add an exercise to start logging sets.
-            </div>
-          )}
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={handleAddExercise}
+              className="mt-3 w-full rounded-2xl bg-accent px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-accent/30"
+              disabled={!newExerciseName.trim()}
+            >
+              Add exercise
+            </button>
+          </div>
+        </section>
+
+        {selectedExercise ? (
+          <ExerciseDetail
+            exercise={selectedExercise}
+            selectedWeekId={selectedWeekId}
+            onWeekChange={setSelectedWeekId}
+            onConfigChange={(patch) =>
+              handleExerciseConfigChange(selectedExercise.id, patch)
+            }
+            onAddSet={(weekId) => handleAddSet(selectedExercise.id, weekId)}
+            onUpdateSet={(weekId, setId, field, value) =>
+              handleUpdateSet(selectedExercise.id, weekId, setId, field, value)
+            }
+            onRemoveSet={(weekId, setId) =>
+              handleRemoveSet(selectedExercise.id, weekId, setId)
+            }
+            onAddWeek={() => handleAddWeek(selectedExercise.id)}
+            focusSetId={focusSetId}
+            onFocusHandled={() => setFocusSetId(null)}
+          />
+        ) : (
+          <div className="rounded-3xl bg-surface p-5 text-center text-text-secondary shadow-card">
+            Select or add an exercise to start logging sets.
+          </div>
+        )}
+      </main>
     </div>
   );
 };

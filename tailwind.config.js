@@ -4,13 +4,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        glass: {
-          light: "rgba(255, 255, 255, 0.65)",
-          dark: "rgba(15, 23, 42, 0.25)",
+        base: "#f6f7fb",
+        surface: "#ffffff",
+        outline: "#e2e8f0",
+        accent: {
+          DEFAULT: "#2563eb",
+          light: "#e5edff",
+        },
+        success: "#16a34a",
+        text: {
+          primary: "#0f172a",
+          secondary: "#64748b",
         },
       },
-      backdropBlur: {
-        xs: "2px",
+      fontFamily: {
+        sans: [
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"Segoe UI"',
+          "system-ui",
+          "sans-serif",
+        ],
+      },
+      boxShadow: {
+        card: "0 12px 28px rgba(15, 23, 42, 0.08)",
       },
     },
   },

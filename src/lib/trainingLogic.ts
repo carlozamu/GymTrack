@@ -1,9 +1,4 @@
-import type {
-  Exercise,
-  TrainingSet,
-  VolumeLevel,
-  WeekData,
-} from "../types/training";
+import type { Exercise, TrainingSet, VolumeLevel } from "../types/training";
 
 export const DELOAD_FREQUENCY = 4;
 
@@ -20,16 +15,6 @@ export interface RepsSummary {
   totalEffectiveReps: number;
   completedSets: number;
   totalHVL: number;
-}
-
-export interface WeekMetrics extends RepsSummary {
-  suggestedSets: number;
-  suggestedWeight: number;
-}
-
-export interface ExerciseComputation {
-  updatedExercise: Exercise;
-  weekMetrics: Record<string, WeekMetrics>;
 }
 
 export const isDeloadTime = (
@@ -160,14 +145,11 @@ export const calculateWeight = (
 const findKeySet = (sets: TrainingSet[]): TrainingSet | undefined =>
   sets.find((set) => set.reps > 0 && set.weight > 0);
 
-export const recomputeExerciseWeeks = (
-  exercise: Exercise,
-): ExerciseComputation => {
+export const recomputeExerciseWeeks = (exercise: Exercise): Exercise => {
   let rollingE1RM = exercise.oneRM;
   let previousWeekWeight = 0;
 
-  const weekMetrics: Record<string, WeekMetrics> = {};
-  const updatedWeeks: WeekData[] = exercise.weeks.map((week) => {
+  const updatedWeeks = exercise.weeks.map((week) => {
     const summary = summarizeSets(week.sets);
     const suggestedSets = calculateSuggestedSets(
       week.sets,
@@ -193,30 +175,27 @@ export const recomputeExerciseWeeks = (
       ? calculate1RM(keySet.weight, keySet.reps)
       : undefined;
 
-    weekMetrics[week.id] = {
-      ...summary,
-      suggestedSets,
-      suggestedWeight,
-    };
-
     if (estimatedOneRM && estimatedOneRM > 0) {
       rollingE1RM = estimatedOneRM;
     }
 
-    previousWeekWeight = suggestedWeight || previousWeekWeight;
+    if (suggestedWeight && suggestedWeight > 0) {
+      previousWeekWeight = suggestedWeight;
+    }
 
     return {
       ...week,
       suggestedWeight,
       estimatedOneRM,
+      effectiveReps: summary.totalEffectiveReps,
+      totalHVL: summary.totalHVL,
+      completedSets: summary.completedSets,
+      suggestedSets,
     };
   });
 
   return {
-    updatedExercise: {
-      ...exercise,
-      weeks: updatedWeeks,
-    },
-    weekMetrics,
+    ...exercise,
+    weeks: updatedWeeks,
   };
 };
