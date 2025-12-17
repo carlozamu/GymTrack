@@ -1,13 +1,267 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>gymtrack</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description"
+    content="GymTrack - Gestisci i tuoi allenamenti, monitora i progressi e ottimizza le tue performance">
+
+  <title>GymTrack - Tracker Allenamenti</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&display=swap"
+    rel="stylesheet">
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234361ee'%3E%3Cpath d='M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z'/%3E%3C/svg%3E">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-title">
+      <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z" />
+      </svg>
+      <span>GymTrack</span>
+    </div>
+    <div class="header-actions">
+      <span id="current-date" class="text-muted" style="font-size: var(--font-size-sm);"></span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="app-container">
+
+      <!-- Exercises Page -->
+      <div id="page-exercises" class="page active">
+        <div class="flex-between mb-md">
+          <h2>I Miei Esercizi</h2>
+          <button id="add-exercise-btn" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+            Nuovo
+          </button>
+        </div>
+        <div id="exercise-list" class="exercise-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Workout Page -->
+      <div id="page-workout" class="page">
+        <div class="mb-md">
+          <div class="flex-between mb-sm">
+            <h2>Allenamento</h2>
+            <span id="block-week-display" class="badge badge-accent">Blocco 1 | Settimana 1</span>
+          </div>
+
+          <!-- Deload Alert -->
+          <div id="deload-alert" class="deload-alert hidden">
+            <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
+            </svg>
+            <span class="deload-alert-text">
+              <strong>Settimana di Deload</strong> — Riduci intensità e volume
+            </span>
+          </div>
+
+          <!-- Exercise Selector -->
+          <div class="form-group">
+            <label class="form-label">Esercizio</label>
+            <select id="workout-exercise-select" class="form-select">
+              <option value="">Seleziona esercizio...</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="workout-content">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Timer -->
+        <div id="timer-container" class="mt-lg">
+          <!-- Timer rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Progress Page -->
+      <div id="page-progress" class="page">
+        <div class="mb-md">
+          <h2>Progressi</h2>
+        </div>
+        <div id="progress-content">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div id="page-settings" class="page">
+        <div class="mb-md">
+          <h2>Impostazioni</h2>
+        </div>
+        <div id="settings-content">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="exercises">
+      <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+      </svg>
+      <span>Esercizi</span>
+    </button>
+    <button class="nav-item" data-page="workout">
+      <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z" />
+      </svg>
+      <span>Allenamento</span>
+    </button>
+    <button class="nav-item" data-page="progress">
+      <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />
+      </svg>
+      <span>Progressi</span>
+    </button>
+    <button class="nav-item" data-page="settings">
+      <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path
+          d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+      </svg>
+      <span>Impostazioni</span>
+    </button>
+  </nav>
+
+  <!-- Exercise Modal -->
+  <div id="exercise-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">Nuovo Esercizio</h3>
+        <button id="close-modal-btn" class="modal-close">✕</button>
+      </div>
+
+      <form id="exercise-form">
+        <div class="form-group">
+          <label class="form-label" for="exercise-name">Nome esercizio</label>
+          <input type="text" id="exercise-name" name="name" class="form-input" placeholder="es. Panca Piana" required>
+        </div>
+
+        <!-- Exercise Type Selector -->
+        <div class="form-group">
+          <label class="form-label" for="exercise-type">Tipo Esercizio</label>
+          <select id="exercise-type" name="type" class="form-select">
+            <option value="standard">Standard (Rep & Peso)</option>
+            <option value="isometric">Isometrico (Tempo)</option>
+            <option value="progression">Progressione (Calisthenics)</option>
+          </select>
+        </div>
+
+        <!-- Metric Fields (Standard) -->
+        <div id="fields-standard" class="type-fields">
+          <div class="form-group">
+            <label class="form-label" for="exercise-1rm">1RM attuale (kg)</label>
+            <input type="number" id="exercise-1rm" name="oneRM" class="form-input" placeholder="80" step="0.5" min="1">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="exercise-min-range">% Min Rep</label>
+              <input type="number" id="exercise-min-range" name="minRepRange" class="form-input" placeholder="83"
+                min="50" max="100" value="83">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="exercise-max-range">% Max Rep</label>
+              <input type="number" id="exercise-max-range" name="maxRepRange" class="form-input" placeholder="89"
+                min="50" max="100" value="89">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="exercise-max-weight">Peso Max Stack (kg)</label>
+              <input type="number" id="exercise-max-weight" name="maxWeight" class="form-input" placeholder="150"
+                min="1" value="150">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="exercise-rounding">Arrotondamento (kg)</label>
+              <input type="number" id="exercise-rounding" name="rounding" class="form-input" placeholder="2.5"
+                step="any" min="0.1" value="2.5">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="exercise-volume-multiplier">Moltiplicatore Volume (0.1 - 2.0)</label>
+            <input type="number" id="exercise-volume-multiplier" name="volumeMultiplier" class="form-input"
+              placeholder="1.0" step="0.1" min="0.1" max="2.0" value="1.0">
+          </div>
+        </div>
+
+        <!-- Isometric Fields (Plank) -->
+        <div id="fields-isometric" class="type-fields hidden">
+          <div
+            style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 1rem; padding: 0.5rem; background: var(--color-bg-subtle); border-radius: 4px;">
+            ⚡️ Modalità Tracking: Inserisci solo il tempo per ogni serie.
+          </div>
+        </div>
+
+        <!-- Progression Fields (Trazioni) -->
+        <div id="fields-progression" class="type-fields hidden">
+          <div
+            style="font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 1rem; padding: 0.5rem; background: var(--color-bg-subtle); border-radius: 4px;">
+            💪 Modalità Tracking: Inserisci le ripetizioni. Nessun target calcolato.
+          </div>
+        </div>
+
+        <!-- Common Fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="exercise-volume">Volume Training</label>
+            <select id="exercise-volume" name="trainingVolume" class="form-select">
+              <option value="Moderate">Moderato</option>
+              <option value="Low">Basso</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="exercise-max-sets">Max Set</label>
+            <input type="number" id="exercise-max-sets" name="maxSets" class="form-input" placeholder="10" min="1"
+              max="20" value="10" required>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="delete-exercise-btn" class="btn btn-danger hidden">
+            🗑️ Elimina
+          </button>
+          <button type="button" id="cancel-modal-btn" class="btn btn-secondary">
+            Annulla
+          </button>
+          <button type="submit" class="btn btn-primary">
+            💾 Salva
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/calculator.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
 </html>
